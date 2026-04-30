@@ -1,0 +1,18 @@
+﻿<!DOCTYPE html>
+<html>
+<head><title>KumbhPOS Live Dashboard</title></head>
+<body>
+<h2>KumbhPOS Live Feed</h2>
+<div id="log" style="font-family:monospace;background:#111;color:#0f0;padding:20px;height:400px;overflow:auto;"></div>
+<script>
+  const ws = new WebSocket("ws://localhost:8080/ws");
+  ws.onmessage = (e) => {
+    const log = document.getElementById("log");
+    const data = JSON.parse(e.data);
+    log.innerHTML += "<br>" + new Date().toLocaleTimeString() + " | " + JSON.stringify(data, null, 2);
+    log.scrollTop = log.scrollHeight;
+  };
+  ws.onopen = () => document.getElementById("log").innerHTML = "Connected to KumbhPOS hub...";
+</script>
+</body>
+</html>
