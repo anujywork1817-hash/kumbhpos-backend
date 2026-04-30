@@ -1,25 +1,26 @@
-package db
+﻿package db
 
 import (
-	"fmt"
-	"os"
+    "os"
 
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+    "github.com/jmoiron/sqlx"
+    _ "github.com/lib/pq"
 )
 
 var DB *sqlx.DB
 
 func Connect() error {
-	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_NAME"),
-	)
-	var err error
-	DB, err = sqlx.Connect("postgres", dsn)
-	return err
+    dsn := os.Getenv("DATABASE_URL")
+    if dsn == "" {
+        // fallback for local development
+        dsn = "host=" + os.Getenv("DB_HOST") +
+            " port=" + os.Getenv("DB_PORT") +
+            " user=" + os.Getenv("DB_USER") +
+            " password=" + os.Getenv("DB_PASSWORD") +
+            " dbname=" + os.Getenv("DB_NAME") +
+            " sslmode=disable"
+    }
+    var err error
+    DB, err = sqlx.Connect("postgres", dsn)
+    return err
 }
