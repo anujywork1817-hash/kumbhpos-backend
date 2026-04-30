@@ -67,6 +67,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
-if items == nil { items = []TransactionItemDetail{} }
+if items == nil { items = []TransactionItem{} }
 c.JSON(http.StatusOK, items)
 }
+
