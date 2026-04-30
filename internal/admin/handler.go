@@ -20,6 +20,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if shops == nil { shops = []ShopDetail{} }
 c.JSON(http.StatusOK, shops)
 }
 
@@ -45,6 +46,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if list == nil { list = []StaffDetail{} }
 c.JSON(http.StatusOK, list)
 }
 
@@ -102,6 +104,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if items == nil { items = []ItemDetail{} }
 c.JSON(http.StatusOK, items)
 }
 

@@ -39,6 +39,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if list == nil { list = []Transaction{} }
 c.JSON(http.StatusOK, list)
 }
 
@@ -58,6 +59,7 @@ return
 }
 c.JSON(http.StatusOK, gin.H{"message": "payment confirmed"})
 }
+
 func GetTransactionItemsHandler(c *gin.Context) {
 txnID := c.Param("id")
 items, err := GetTransactionItems(txnID)
@@ -65,5 +67,6 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if items == nil { items = []TransactionItem{} }
 c.JSON(http.StatusOK, items)
 }

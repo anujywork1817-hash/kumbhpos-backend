@@ -2,7 +2,6 @@
 
 import (
 "net/http"
-
 "github.com/gin-gonic/gin"
 )
 
@@ -36,12 +35,13 @@ c.JSON(http.StatusOK, rec)
 
 func ListAttendanceHandler(c *gin.Context) {
 shopID := c.Query("shop_id")
-date   := c.Query("date")
+date := c.Query("date")
 list, err := GetAttendance(shopID, date)
 if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if list == nil { list = []Record{} }
 c.JSON(http.StatusOK, list)
 }
 
@@ -52,6 +52,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if list == nil { list = []Record{} }
 c.JSON(http.StatusOK, list)
 }
 

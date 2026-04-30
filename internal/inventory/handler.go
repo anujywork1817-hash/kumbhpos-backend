@@ -12,6 +12,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if levels == nil { levels = []StockLevel{} }
 c.JSON(http.StatusOK, levels)
 }
 
@@ -21,6 +22,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if alerts == nil { alerts = []StockLevel{} }
 c.JSON(http.StatusOK, alerts)
 }
 
@@ -57,6 +59,7 @@ if err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
+if list == nil { list = []RestockRequest{} }
 c.JSON(http.StatusOK, list)
 }
 
@@ -66,7 +69,7 @@ if err := ApproveRestockRequest(id); err != nil {
 c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 return
 }
-c.JSON(http.StatusOK, gin.H{"message": "restock approved and stock updated"})
+c.JSON(http.StatusOK, gin.H{"message": "restock approved"})
 }
 
 func TransferStockHandler(c *gin.Context) {
