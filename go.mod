@@ -1,4 +1,4 @@
-﻿module github.com/beellz/kumbhpos
+module github.com/beellz/kumbhpos
 
 go 1.22.0
 
