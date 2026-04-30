@@ -32,9 +32,10 @@ func main() {
     log.Println("PostgreSQL connected")
 
     if err := redisclient.Connect(); err != nil {
-        log.Fatal("Redis connection failed:", err)
+        log.Println("Redis connection failed (continuing):", err)
+    } else {
+        log.Println("Redis connected")
     }
-    log.Println("Redis connected")
 
     go dashboard.GlobalHub.Run()
     log.Println("WebSocket hub started")
@@ -101,25 +102,29 @@ func main() {
     api.POST("/inventory/restock/:id/approve", inventory.ApproveRestockHandler)
 
     // Admin
-    api.GET("/admin/stats",              admin.GlobalStatsHandler)
-    api.GET("/admin/shops",              admin.ListShopsHandler)
-    api.PATCH("/admin/shops/:id",        admin.ToggleShopHandler)
-    api.GET("/admin/staff",              admin.ListStaffHandler)
-    api.PATCH("/admin/staff/:id/pin",    admin.ResetPINHandler)
+    api.GET("/admin/stats", admin.GlobalStatsHandler)
+    api.GET("/admin/shops", admin.ListShopsHandler)
+    api.PATCH("/admin/shops/:id", admin.ToggleShopHandler)
+    api.GET("/admin/staff", admin.ListStaffHandler)
+    api.PATCH("/admin/staff/:id/pin", admin.ResetPINHandler)
     api.PATCH("/admin/staff/:id/active", admin.ToggleStaffHandler)
-    api.PATCH("/admin/staff/:id/role",   admin.ChangeRoleHandler)
-    api.GET("/admin/items",              admin.ListItemsHandler)
-    api.PATCH("/admin/items/:id/price",  admin.UpdatePriceHandler)
+    api.PATCH("/admin/staff/:id/role", admin.ChangeRoleHandler)
+    api.GET("/admin/items", admin.ListItemsHandler)
+    api.PATCH("/admin/items/:id/price", admin.UpdatePriceHandler)
     api.PATCH("/admin/items/:id/active", admin.ToggleItemHandler)
 
     // Attendance
-    api.POST("/attendance/clock-in",          attendance.ClockInHandler)
-    api.POST("/attendance/clock-out",         attendance.ClockOutHandler)
-    api.GET("/attendance",                    attendance.ListAttendanceHandler)
-    api.GET("/attendance/active",             attendance.ActiveShiftsHandler)
-    api.GET("/attendance/status/:staff_id",   attendance.StaffStatusHandler)
+    api.POST("/attendance/clock-in", attendance.ClockInHandler)
+    api.POST("/attendance/clock-out", attendance.ClockOutHandler)
+    api.GET("/attendance", attendance.ListAttendanceHandler)
+    api.GET("/attendance/active", attendance.ActiveShiftsHandler)
+    api.GET("/attendance/status/:staff_id", attendance.StaffStatusHandler)
 
-    port := os.Getenv("SERVER_PORT")
+    // Render uses PORT, fallback to SERVER_PORT for local
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = os.Getenv("SERVER_PORT")
+    }
     if port == "" {
         port = "8080"
     }
