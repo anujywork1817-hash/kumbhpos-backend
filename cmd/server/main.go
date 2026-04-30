@@ -25,6 +25,9 @@ import (
 
 func main() {
     config.Load()
+    log.Println("Starting KumbhPOS...")
+    log.Println("DATABASE_URL set:", os.Getenv("DATABASE_URL") != "")
+    log.Println("REDIS_URL set:", os.Getenv("REDIS_URL") != "")
 
     if err := db.Connect(); err != nil {
         log.Fatal("DB connection failed:", err)
