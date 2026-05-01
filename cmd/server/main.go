@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
     "log"
@@ -51,16 +51,11 @@ func main() {
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},
         AllowCredentials: false,
-    }))
-
-    // Health check
-r.GET("/health", func(c *gin.Context) {
-c.JSON(200, gin.H{"status": "ok"})
-})
+    }))})})
 
 // Health check
 r.GET("/health", func(c *gin.Context) {
-c.JSON(200, gin.H{"status": "ok", "service": "KumbhPOS"})
+c.JSON(200, gin.H{"status": "ok"})
 })
 
 // Public
