@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
     "log"
@@ -53,7 +53,12 @@ func main() {
         AllowCredentials: false,
     }))
 
-    // Public
+    // Health check
+r.GET("/health", func(c *gin.Context) {
+c.JSON(200, gin.H{"status": "ok"})
+})
+
+// Public
     r.POST("/api/v1/auth/login", auth.LoginHandler)
     r.POST("/api/v1/payments/webhook", payment.WebhookHandler)
     r.GET("/ws", dashboard.WSHandler)
@@ -134,3 +139,4 @@ func main() {
     log.Printf("KumbhPOS Hub running on :%s\n", port)
     r.Run(":" + port)
 }
+
