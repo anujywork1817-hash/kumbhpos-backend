@@ -2,6 +2,7 @@
 
 import (
 "errors"
+"fmt"
 "time"
 
 "github.com/beellz/kumbhpos/pkg/db"
@@ -179,6 +180,6 @@ return nil, nil // not clocked in — not an error
 return &rec, nil
 }
 
-func itoa(i int) string {
-return string(rune('0' + i))
-}
+func itoa(i int) string { return fmt.Sprintf("%d", i) }
+
+
