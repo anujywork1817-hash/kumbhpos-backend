@@ -58,6 +58,11 @@ r.GET("/health", func(c *gin.Context) {
 c.JSON(200, gin.H{"status": "ok"})
 })
 
+// Health check
+r.GET("/health", func(c *gin.Context) {
+c.JSON(200, gin.H{"status": "ok", "service": "KumbhPOS"})
+})
+
 // Public
     r.POST("/api/v1/auth/login", auth.LoginHandler)
     r.POST("/api/v1/payments/webhook", payment.WebhookHandler)
@@ -139,4 +144,5 @@ c.JSON(200, gin.H{"status": "ok"})
     log.Printf("KumbhPOS Hub running on :%s\n", port)
     r.Run(":" + port)
 }
+
 
