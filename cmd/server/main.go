@@ -1,126 +1,130 @@
-package main
+﻿package main
 
 import (
-"log"
-"os"
+	"log"
+	"os"
 
-"github.com/beellz/kumbhpos/config"
-"github.com/beellz/kumbhpos/internal/admin"
-"github.com/beellz/kumbhpos/internal/attendance"
-"github.com/beellz/kumbhpos/internal/auth"
-"github.com/beellz/kumbhpos/internal/catalog"
-"github.com/beellz/kumbhpos/internal/dashboard"
-"github.com/beellz/kumbhpos/internal/inventory"
-"github.com/beellz/kumbhpos/internal/middleware"
-"github.com/beellz/kumbhpos/internal/payment"
-"github.com/beellz/kumbhpos/internal/settlement"
-"github.com/beellz/kumbhpos/internal/shop"
-"github.com/beellz/kumbhpos/internal/staff"
-"github.com/beellz/kumbhpos/internal/transaction"
-"github.com/beellz/kumbhpos/pkg/db"
-redisclient "github.com/beellz/kumbhpos/pkg/redis"
-"github.com/gin-contrib/cors"
-"github.com/gin-gonic/gin"
+	"github.com/beellz/kumbhpos/config"
+	"github.com/beellz/kumbhpos/internal/admin"
+	"github.com/beellz/kumbhpos/internal/attendance"
+	"github.com/beellz/kumbhpos/internal/auth"
+	"github.com/beellz/kumbhpos/internal/catalog"
+	"github.com/beellz/kumbhpos/internal/dashboard"
+	"github.com/beellz/kumbhpos/internal/inventory"
+	"github.com/beellz/kumbhpos/internal/middleware"
+	"github.com/beellz/kumbhpos/internal/payment"
+	"github.com/beellz/kumbhpos/internal/settlement"
+	"github.com/beellz/kumbhpos/internal/shop"
+	"github.com/beellz/kumbhpos/internal/staff"
+	syncpkg "github.com/beellz/kumbhpos/internal/sync"
+	"github.com/beellz/kumbhpos/internal/transaction"
+	"github.com/beellz/kumbhpos/pkg/db"
+	redisclient "github.com/beellz/kumbhpos/pkg/redis"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-config.Load()
-log.Println("Starting KumbhPOS...")
+	config.Load()
+	log.Println("Starting KumbhPOS...")
 
-if err := db.Connect(); err != nil {
-log.Fatal("DB connection failed:", err)
-}
-log.Println("PostgreSQL connected")
+	if err := db.Connect(); err != nil {
+		log.Fatal("DB connection failed:", err)
+	}
+	log.Println("PostgreSQL connected")
 
-if err := redisclient.Connect(); err != nil {
-log.Println("Redis connection failed (continuing):", err)
-} else {
-log.Println("Redis connected")
-}
+	if err := redisclient.Connect(); err != nil {
+		log.Println("Redis connection failed (continuing):", err)
+	} else {
+		log.Println("Redis connected")
+	}
 
-go dashboard.GlobalHub.Run()
-log.Println("WebSocket hub started")
+	go dashboard.GlobalHub.Run()
+	log.Println("WebSocket hub started")
 
-r := gin.Default()
+	r := gin.Default()
 
-r.Use(cors.New(cors.Config{
-AllowOrigins:     []string{"*"},
-AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
-ExposeHeaders:    []string{"Content-Length"},
-AllowCredentials: false,
-}))
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: false,
+	}))
 
-r.Any("/health", func(c *gin.Context) {
-c.JSON(200, gin.H{"status": "ok", "service": "KumbhPOS"})
-})
+	r.Any("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok", "service": "KumbhPOS"})
+	})
 
-r.POST("/api/v1/auth/login", auth.LoginHandler)
-r.POST("/api/v1/payments/webhook", payment.WebhookHandler)
-r.GET("/ws", dashboard.WSHandler)
+	r.POST("/api/v1/auth/login", auth.LoginHandler)
+	r.POST("/api/v1/payments/webhook", payment.WebhookHandler)
+	r.GET("/ws", dashboard.WSHandler)
 
-api := r.Group("/api/v1", middleware.AuthRequired())
+	api := r.Group("/api/v1", middleware.AuthRequired())
 
-api.POST("/shops", shop.CreateShopHandler)
-api.GET("/shops", shop.ListShopsHandler)
+	api.POST("/shops", shop.CreateShopHandler)
+	api.GET("/shops", shop.ListShopsHandler)
 
-api.POST("/staff", staff.CreateStaffHandler)
-api.GET("/shops/:shop_id/staff", staff.ListStaffHandler)
+	api.POST("/staff", staff.CreateStaffHandler)
+	api.GET("/shops/:shop_id/staff", staff.ListStaffHandler)
 
-api.POST("/categories", catalog.CreateCategoryHandler)
-api.GET("/categories", catalog.ListCategoriesHandler)
-api.POST("/items", catalog.CreateItemHandler)
-api.GET("/items", catalog.ListItemsHandler)
-api.POST("/shops/:shop_id/items", catalog.AssignItemHandler)
-api.GET("/shops/:shop_id/catalog", catalog.ShopCatalogHandler)
+	api.POST("/categories", catalog.CreateCategoryHandler)
+	api.GET("/categories", catalog.ListCategoriesHandler)
+	api.POST("/items", catalog.CreateItemHandler)
+	api.GET("/items", catalog.ListItemsHandler)
+	api.POST("/shops/:shop_id/items", catalog.AssignItemHandler)
+	api.GET("/shops/:shop_id/catalog", catalog.ShopCatalogHandler)
 
-api.POST("/transactions/checkout", transaction.CheckoutHandler)
-api.GET("/transactions", transaction.ListTransactionsHandler)
-api.GET("/transactions/:id", transaction.GetTransactionHandler)
-api.GET("/transactions/:id/items", transaction.GetTransactionItemsHandler)
-api.POST("/transactions/:id/confirm-upi", transaction.ConfirmUPIHandler)
+	api.POST("/transactions/checkout", transaction.CheckoutHandler)
+	api.GET("/transactions", transaction.ListTransactionsHandler)
+	api.GET("/transactions/:id", transaction.GetTransactionHandler)
+	api.GET("/transactions/:id/items", transaction.GetTransactionItemsHandler)
+	api.POST("/transactions/:id/confirm-upi", transaction.ConfirmUPIHandler)
 
-api.POST("/payments/qr", payment.CreateQRHandler)
-api.GET("/payments/:id/status", payment.CheckStatusHandler)
+	api.POST("/payments/qr", payment.CreateQRHandler)
+	api.GET("/payments/:id/status", payment.CheckStatusHandler)
 
-api.GET("/dashboard/stats", dashboard.StatsHandler)
-api.GET("/dashboard/leaderboard", dashboard.LeaderboardHandler)
+	api.GET("/dashboard/stats", dashboard.StatsHandler)
+	api.GET("/dashboard/leaderboard", dashboard.LeaderboardHandler)
 
-api.GET("/settlement/eod", settlement.EODReportHandler)
-api.GET("/settlement/eod/pdf", settlement.EODPDFHandler)
+	api.GET("/settlement/eod", settlement.EODReportHandler)
+	api.GET("/settlement/eod/pdf", settlement.EODPDFHandler)
 
-api.GET("/inventory/stock", inventory.StockLevelsHandler)
-api.GET("/inventory/low-stock", inventory.LowStockHandler)
-api.POST("/inventory/adjust", inventory.AdjustStockHandler)
-api.POST("/inventory/transfer", inventory.TransferStockHandler)
-api.POST("/inventory/restock", inventory.CreateRestockHandler)
-api.GET("/inventory/restock", inventory.RestockListHandler)
-api.POST("/inventory/restock/:id/approve", inventory.ApproveRestockHandler)
+	api.GET("/inventory/stock", inventory.StockLevelsHandler)
+	api.GET("/inventory/low-stock", inventory.LowStockHandler)
+	api.POST("/inventory/adjust", inventory.AdjustStockHandler)
+	api.POST("/inventory/transfer", inventory.TransferStockHandler)
+	api.POST("/inventory/restock", inventory.CreateRestockHandler)
+	api.GET("/inventory/restock", inventory.RestockListHandler)
+	api.POST("/inventory/restock/:id/approve", inventory.ApproveRestockHandler)
 
-api.GET("/admin/stats", admin.GlobalStatsHandler)
-api.GET("/admin/shops", admin.ListShopsHandler)
-api.PATCH("/admin/shops/:id", admin.ToggleShopHandler)
-api.GET("/admin/staff", admin.ListStaffHandler)
-api.PATCH("/admin/staff/:id/pin", admin.ResetPINHandler)
-api.PATCH("/admin/staff/:id/active", admin.ToggleStaffHandler)
-api.PATCH("/admin/staff/:id/role", admin.ChangeRoleHandler)
-api.GET("/admin/items", admin.ListItemsHandler)
-api.PATCH("/admin/items/:id/price", admin.UpdatePriceHandler)
-api.PATCH("/admin/items/:id/active", admin.ToggleItemHandler)
+	api.GET("/admin/stats", admin.GlobalStatsHandler)
+	api.GET("/admin/shops", admin.ListShopsHandler)
+	api.PATCH("/admin/shops/:id", admin.ToggleShopHandler)
+	api.GET("/admin/staff", admin.ListStaffHandler)
+	api.PATCH("/admin/staff/:id/pin", admin.ResetPINHandler)
+	api.PATCH("/admin/staff/:id/active", admin.ToggleStaffHandler)
+	api.PATCH("/admin/staff/:id/role", admin.ChangeRoleHandler)
+	api.GET("/admin/items", admin.ListItemsHandler)
+	api.PATCH("/admin/items/:id/price", admin.UpdatePriceHandler)
+	api.PATCH("/admin/items/:id/active", admin.ToggleItemHandler)
 
-api.POST("/attendance/clock-in", attendance.ClockInHandler)
-api.POST("/attendance/clock-out", attendance.ClockOutHandler)
-api.GET("/attendance", attendance.ListAttendanceHandler)
-api.GET("/attendance/active", attendance.ActiveShiftsHandler)
-api.GET("/attendance/status/:staff_id", attendance.StaffStatusHandler)
+	api.POST("/attendance/clock-in", attendance.ClockInHandler)
+	api.POST("/attendance/clock-out", attendance.ClockOutHandler)
+	api.GET("/attendance", attendance.ListAttendanceHandler)
+	api.GET("/attendance/active", attendance.ActiveShiftsHandler)
+	api.GET("/attendance/status/:staff_id", attendance.StaffStatusHandler)
+	api.POST("/sync/push", syncpkg.PushHandler)
+	api.GET("/sync/pull", syncpkg.PullHandler)
+	api.POST("/sync/heartbeat", syncpkg.HeartbeatHandler)
 
-port := os.Getenv("PORT")
-if port == "" {
-port = os.Getenv("SERVER_PORT")
-}
-if port == "" {
-port = "8080"
-}
-log.Printf("KumbhPOS running on :%s\n", port)
-r.Run(":" + port)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = os.Getenv("SERVER_PORT")
+	}
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("KumbhPOS running on :%s\n", port)
+	r.Run(":" + port)
 }
