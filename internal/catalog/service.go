@@ -7,6 +7,8 @@ import (
 	"io"
 	"mime/multipart"
 
+	"os"
+
 	"github.com/beellz/kumbhpos/pkg/db"
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
@@ -118,7 +120,11 @@ func GetShopCatalog(shopID string) ([]Item, error) {
 }
 
 func getCloudinary() (*cloudinary.Cloudinary, error) {
-	cld, err := cloudinary.New()
+	cld, err := cloudinary.NewFromParams(
+		os.Getenv("CLOUDINARY_CLOUD_NAME"),
+		os.Getenv("CLOUDINARY_API_KEY"),
+		os.Getenv("CLOUDINARY_API_SECRET"),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("cloudinary init failed: %w", err)
 	}
