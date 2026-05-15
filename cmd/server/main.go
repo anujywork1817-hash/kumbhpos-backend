@@ -75,6 +75,11 @@ func main() {
 	api.POST("/shops/:shop_id/items", catalog.AssignItemHandler)
 	api.GET("/shops/:shop_id/catalog", catalog.ShopCatalogHandler)
 
+	// Add these to your existing catalog routes:
+	r.POST("/catalog/items/:item_id/image", catalog.UploadImageHandler)
+	r.POST("/catalog/items/:item_id/image-url", catalog.UploadImageURLHandler)
+	r.DELETE("/catalog/items/:item_id/image", catalog.DeleteImageHandler)
+
 	api.POST("/transactions/checkout", transaction.CheckoutHandler)
 	api.GET("/transactions", transaction.ListTransactionsHandler)
 	api.GET("/transactions/:id", transaction.GetTransactionHandler)
